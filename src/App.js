@@ -1,476 +1,481 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
 import './App.css';
 
-// Animation variants
-const fadeInUp = {
-  initial: { opacity: 0, y: 60 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 }
-};
+const NeuroSynapsePortfolio = () => {
+  const canvasRef = useRef(null);
 
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
+  // Smooth scroll function
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
-  }
-};
+  };
 
-function App() {
+  // Open external links
+  const openExternalLink = (url) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // Send email
+  const sendEmail = () => {
+    window.location.href = 'mailto:prabhavathi06052007@gmail.com';
+  };
+
+  // View projects
+  const viewProjects = () => {
+    scrollToSection('projects');
+  };
+
+  // View resume
+  const downloadResume = () => {
+    const link = document.createElement('a');
+    link.href = '/resume.pdf';
+    link.download = 'Prabhavathi_A_Resume.pdf';
+    link.click();
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Particle system
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = (Math.random() - 0.5) * 2;
+        this.size = Math.random() * 2 + 1;
+        this.alpha = Math.random() * 0.5 + 0.1;
+        this.color = `hsl(${Math.random() * 60 + 200}, 70%, 60%)`;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+
+        this.alpha = 0.1 + Math.sin(Date.now() * 0.001 + this.x * 0.01) * 0.1;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    const particles = Array.from({ length: 150 }, () => new Particle());
+
+    const connectParticles = () => {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 100) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(102, 126, 234, ${0.1 * (1 - distance / 100)})`;
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    };
+
+    const animate = () => {
+      ctx.fillStyle = 'rgba(2, 6, 23, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+
+      connectParticles();
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, []);
+
   return (
-    <div className="App">
-      {/* Navigation */}
-      <motion.nav 
-        className="navbar"
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="nav-container">
-          <motion.h2 
-            className="nav-logo"
-            whileHover={{ scale: 1.05 }}
-          >
-            PRABHAVATHI A
-          </motion.h2>
-          <ul className="nav-menu">
-            {['Home', 'About', 'Projects', 'Resume', 'Contact'].map((item) => (
-              <motion.li key={item} className="nav-item" whileHover={{ scale: 1.1 }}>
-                <a href={`#${item.toLowerCase()}`} className="nav-link">{item}</a>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
-      </motion.nav>
+    <div className="neuro-portfolio">
+      {/* Animated Background Canvas */}
+      <canvas ref={canvasRef} className="particle-canvas"></canvas>
+      
+      {/* Animated Grid Overlay */}
+      <div className="grid-overlay"></div>
 
-      {/* Hero Section */}
-      <section id="home" className="hero">
-        <div className="hero-background">
-          <div className="floating-shapes">
-            <div className="shape shape-1"></div>
-            <div className="shape shape-2"></div>
-            <div className="shape shape-3"></div>
+      {/* FIXED Navigation - Now Working */}
+      <nav className="neuro-nav">
+        <div className="nav-glitch">
+          <span className="glitch-text" data-text="PRABHAVATHI A">PRABHAVATHI A</span>
+          <div className="nav-pulse"></div>
+        </div>
+        <div className="neuro-links">
+          <button className="neuro-link" onClick={() => scrollToSection('home')}>
+            <span className="link-text">Home</span>
+            <span className="link-glow"></span>
+          </button>
+          <button className="neuro-link" onClick={() => scrollToSection('neuro')}>
+            <span className="link-text">Skills</span>
+            <span className="link-glow"></span>
+          </button>
+          <button className="neuro-link" onClick={() => scrollToSection('projects')}>
+            <span className="link-text">Projects</span>
+            <span className="link-glow"></span>
+          </button>
+          <button className="neuro-link" onClick={() => scrollToSection('contact')}>
+            <span className="link-text">Contact</span>
+            <span className="link-glow"></span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section - FIXED Buttons */}
+      <section id="home" className="neuro-hero">
+        <div className="hero-matrix">
+          <div className="matrix-code"></div>
+        </div>
+        <div className="hero-content">
+          <div className="cyber-badge">
+            <span className="badge-pulse"></span>
+            AI DEVELOPER
           </div>
-        </div>
-        <motion.div 
-          className="hero-content"
-          initial="initial"
-          animate="animate"
-          variants={staggerContainer}
-        >
-          <motion.div className="hero-text" variants={fadeInUp}>
-            <h1>Hi, I'm <span className="highlight">PRABHAVATHI A</span></h1>
-            <p className="hero-subtitle">Computer Science Engineer & Aspiring Software Developer</p>
-            <p className="hero-description">Crafting digital experiences with code and creativity</p>
-          </motion.div>
-          <motion.div className="hero-actions" variants={fadeInUp}>
-            <motion.button 
-              className="cta-button primary"
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 10px 25px rgba(74, 144, 226, 0.4)"
-              }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => document.getElementById('projects').scrollIntoView({ behavior: 'smooth' })}
-            >
-              🚀 View My Work
-            </motion.button>
-            <motion.button 
-              className="cta-button secondary"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}
-            >
-              📧 Get In Touch
-            </motion.button>
-          </motion.div>
-          <motion.div className="scroll-indicator" variants={fadeInUp}>
-            <div className="mouse">
-              <div className="wheel"></div>
-            </div>
-            <p>Scroll to explore</p>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="about">
-        <div className="container">
-          <motion.div
-            className="section-header"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2>About Me</h2>
-            <div className="section-divider"></div>
-          </motion.div>
           
-          <div className="about-content">
-            <motion.div 
-              className="about-text"
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <p>
-                I'm a passionate Computer Science Engineering student at KSR College of Engineering 
-                with a CGPA of 8.65. I love building software solutions and continuously learning 
-                new technologies. My goal is to become a skilled Software Developer who creates 
-                efficient and innovative applications.
-              </p>
-              <div className="stats">
-                <div className="stat">
-                  <h3>8.65</h3>
-                  <p>CGPA</p>
-                </div>
-                <div className="stat">
-                  <h3>2+</h3>
-                  <p>Projects</p>
-                </div>
-                <div className="stat">
-                  <h3>3</h3>
-                  <p>Certifications</p>
-                </div>
+          <h1 className="cyber-title">
+            <span className="title-line">HELLO, I'M</span>
+            <span className="title-line gradient-glitch" data-text="PRABHAVATHI">
+              <span className="title-main">PRABHAVATHI</span>
+              <span className="title-glitch">PRABHAVATHI</span>
+            </span>
+            <span className="title-line">AI & FULL-STACK DEVELOPER</span>
+          </h1>
+
+          <p className="cyber-desc">
+            <span className="desc-cursor">></span> 
+            COMPUTER SCIENCE ENGINEER BUILDING INTELLIGENT SOLUTIONS AND 
+            REVOLUTIONARY DIGITAL EXPERIENCES.
+          </p>
+
+          <div className="cyber-stats">
+            <div className="stat-terminal">
+              <div className="terminal-line">
+                <span className="prompt">$</span> EDUCATION: <span className="accent">KSR COLLEGE - 8.65 CGPA</span>
               </div>
-            </motion.div>
-            
-            <motion.div 
-              className="skills-container"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              <h3>Technical Skills</h3>
-              <div className="skills-grid">
-                {[
-                  { name: 'C Programming', level: 85 },
-                  { name: 'Python', level: 80 },
-                  { name: 'MATLAB', level: 75 },
-                  { name: 'Microsoft Excel', level: 90 },
-                  { name: 'React', level: 70 },
-                  { name: 'Git & GitHub', level: 80 }
-                ].map((skill, index) => (
-                  <motion.div 
-                    key={skill.name}
-                    className="skill-item"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <div className="skill-header">
-                      <span>{skill.name}</span>
-                      <span>{skill.level}%</span>
-                    </div>
-                    <div className="skill-bar">
-                      <motion.div 
-                        className="skill-progress"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${skill.level}%` }}
-                        transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
-                        viewport={{ once: true }}
-                      ></motion.div>
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="terminal-line">
+                <span className="prompt">$</span> PROJECTS: <span className="accent">2+ ACTIVE</span>
               </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Projects Section */}
-      <section id="projects" className="projects">
-        <div className="container">
-          <motion.div
-            className="section-header"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2>My Projects</h2>
-            <div className="section-divider"></div>
-            <p>Here are some of my recent works</p>
-          </motion.div>
-
-          <div className="projects-grid">
-            {[
-              {
-                title: "AI Chatbot",
-                description: "Currently developing an intelligent chatbot using modern AI technologies and natural language processing.",
-                technologies: ["Python", "AI/ML", "NLP"],
-                link: "https://github.com/Prabhavathi-Ai?tab=repositories",
-                icon: "🤖"
-              },
-              {
-                title: "Personal Portfolio",
-                description: "A responsive portfolio website built with React to showcase my projects and skills.",
-                technologies: ["React", "CSS3", "JavaScript"],
-                link: "https://github.com/Prabhavathi-Ai?tab=repositories",
-                icon: "💼"
-              },
-              {
-                title: "More Projects Coming Soon",
-                description: "I'm continuously working on new projects to enhance my skills and build my portfolio.",
-                technologies: ["Learning", "Growing"],
-                link: "https://github.com/Prabhavathi-Ai",
-                icon: "🚀"
-              }
-            ].map((project, index) => (
-              <motion.div 
-                key={project.title}
-                className="project-card"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -10 }}
-              >
-                <div className="project-icon">{project.icon}</div>
-                <h3>{project.title}</h3>
-                <p>{project.description}</p>
-                <div className="project-technologies">
-                  {project.technologies.map(tech => (
-                    <span key={tech} className="tech-tag">{tech}</span>
-                  ))}
-                </div>
-                <div className="project-links">
-                  <motion.a 
-                    href={project.link} 
-                    className="project-link" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    View Code →
-                  </motion.a>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Resume Section */}
-      <section id="resume" className="resume">
-        <div className="container">
-          <motion.div
-            className="section-header"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2>Resume</h2>
-            <div className="section-divider"></div>
-          </motion.div>
-
-          <div className="resume-content">
-            <div className="resume-grid">
-              <motion.div 
-                className="resume-card"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-              >
-                <h3>🎓 Education</h3>
-                <div className="resume-item">
-                  <h4>BE Computer Science and Engineering</h4>
-                  <p className="institution">KSR College of Engineering</p>
-                  <p className="details">CGPA: 8.65 | 2021-2025</p>
-                </div>
-                <div className="resume-item">
-                  <h4>12th Grade</h4>
-                  <p className="institution">Government Higher Secondary School</p>
-                  <p className="details">Percentage: 84% | 2020-2021</p>
-                </div>
-                <div className="resume-item">
-                  <h4>10th Grade</h4>
-                  <p className="institution">Government Higher Secondary School</p>
-                  <p className="details">Percentage: 89% | 2018-2019</p>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                className="resume-card"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                viewport={{ once: true }}
-              >
-                <h3>📜 Certifications</h3>
-                <div className="resume-item">
-                  <h4>Introduction to Microsoft Excel</h4>
-                  <p className="institution">Coursera</p>
-                </div>
-                <div className="resume-item">
-                  <h4>MATLAB & MATLAB Onramp</h4>
-                  <p className="institution">Coursera</p>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                className="resume-card"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                viewport={{ once: true }}
-              >
-                <h3>🏆 Achievements</h3>
-                <div className="resume-item">
-                  <h4>Paper Presentation</h4>
-                  <p className="institution">TNWISE 2025 - Sona College of Engineering</p>
-                </div>
-                <div className="resume-item">
-                  <h4>Workshop Attendee</h4>
-                  <p className="institution">KPR College of Engineering</p>
-                </div>
-              </motion.div>
+              <div className="terminal-line">
+                <span className="prompt">$</span> SPECIALIZATION: <span className="accent">AI & WEB DEVELOPMENT</span>
+              </div>
             </div>
+          </div>
 
-            <motion.div 
-              className="resume-download"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <motion.a 
-                href="/resume.pdf" 
-                className="cta-button primary"
-                download="Prabhavathi_A_Resume.pdf"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                📄 Download Resume
-              </motion.a>
-            </motion.div>
+          {/* FIXED Buttons - Now Working */}
+          <div className="cyber-controls">
+            <button className="cyber-btn primary" onClick={viewProjects}>
+              <span className="btn-glow"></span>
+              VIEW MY PROJECTS
+              <span className="btn-pulse">▶</span>
+            </button>
+            <button className="cyber-btn secondary" onClick={sendEmail}>
+              GET IN TOUCH
+              <span className="btn-scan"></span>
+            </button>
+          </div>
+        </div>
+
+        {/* 3D Cube Animation */}
+        <div className="cube-container">
+          <div className="cube">
+            <div className="face front">AI</div>
+            <div className="face back">ML</div>
+            <div className="face right">DEV</div>
+            <div className="face left">CODE</div>
+            <div className="face top">WEB</div>
+            <div className="face bottom">APP</div>
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="contact">
-        <div className="container">
-          <motion.div
-            className="section-header"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2>Get In Touch</h2>
-            <div className="section-divider"></div>
-            <p>I'm always interested in new opportunities and collaborations!</p>
-          </motion.div>
+      {/* Skills Section */}
+      <section id="neuro" className="neuro-skills">
+        <div className="section-header">
+          <h2 className="section-title">
+            <span className="title-hack">[</span>
+            TECHNICAL SKILLS
+            <span className="title-hack">]</span>
+          </h2>
+          <div className="section-subtitle">MY TECHNICAL TOOLKIT & EXPERTISE</div>
+        </div>
 
-          <div className="contact-content">
-            <motion.div 
-              className="contact-info"
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <h3>Let's Connect! 🌟</h3>
-              <p>Feel free to reach out for collaborations or just to say hello!</p>
-              
-              <div className="contact-details">
-                <div className="contact-item">
-                  <span className="contact-icon">📧</span>
-                  <div>
-                    <h4>Email</h4>
-                    <p>prabhavathi06052007@gmail.com</p>
-                  </div>
+        <div className="skills-matrix">
+          <div className="skill-node">
+            <div className="node-core">
+              <div className="node-icon">🤖</div>
+              <h3>AI & MACHINE LEARNING</h3>
+            </div>
+            <div className="node-connections">
+              <div className="connection"></div>
+              <div className="connection"></div>
+              <div className="connection"></div>
+            </div>
+            <div className="node-skills">
+              <span className="skill-chip">Python</span>
+              <span className="skill-chip">Neural Networks</span>
+              <span className="skill-chip">Natural Language Processing</span>
+              <span className="skill-chip">Computer Vision</span>
+            </div>
+          </div>
+
+          <div className="skill-node">
+            <div className="node-core">
+              <div className="node-icon">⚡</div>
+              <h3>FULL STACK DEVELOPMENT</h3>
+            </div>
+            <div className="node-connections">
+              <div className="connection"></div>
+              <div className="connection"></div>
+            </div>
+            <div className="node-skills">
+              <span className="skill-chip">React</span>
+              <span className="skill-chip">JavaScript</span>
+              <span className="skill-chip">Node.js</span>
+              <span className="skill-chip">HTML/CSS</span>
+              <span className="skill-chip">MongoDB</span>
+            </div>
+          </div>
+
+          <div className="skill-node">
+            <div className="node-core">
+              <div className="node-icon">🔧</div>
+              <h3>TOOLS & TECHNOLOGIES</h3>
+            </div>
+            <div className="node-connections">
+              <div className="connection"></div>
+            </div>
+            <div className="node-skills">
+              <span className="skill-chip">Git & GitHub</span>
+              <span className="skill-chip">MATLAB</span>
+              <span className="skill-chip">VS Code</span>
+              <span className="skill-chip">Microsoft Excel</span>
+              <span className="skill-chip">Figma</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Projects Section - FIXED Links */}
+      <section id="projects" className="holographic-projects">
+        <div className="section-header">
+          <h2 className="section-title">
+            <span className="title-hack">{">"}</span>
+            MY PROJECTS
+            <span className="title-hack">_</span>
+          </h2>
+        </div>
+
+        <div className="hologram-grid">
+          <div className="hologram-card">
+            <div className="holo-header">
+              <div className="holo-badge">AI PROJECT</div>
+              <div className="holo-status active"></div>
+            </div>
+            <div className="holo-content">
+              <h3>AI CHATBOT</h3>
+              <div className="holo-progress">
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{width: '75%'}}></div>
                 </div>
-                <div className="contact-item">
-                  <span className="contact-icon">💼</span>
-                  <div>
-                    <h4>LinkedIn</h4>
-                    <p>linkedin.com/in/prabhavathi-a-965b4b34a</p>
-                  </div>
-                </div>
-                <div className="contact-item">
-                  <span className="contact-icon">💻</span>
-                  <div>
-                    <h4>GitHub</h4>
-                    <p>github.com/Prabhavathi-Ai</p>
-                  </div>
-                </div>
+                <span>IN DEVELOPMENT</span>
               </div>
-            </motion.div>
+              <p>Intelligent chatbot using modern AI technologies and natural language processing with Python.</p>
+              <div className="holo-tech">
+                <span>PYTHON</span>
+                <span>AI/ML</span>
+                <span>NLP</span>
+              </div>
+            </div>
+            <div className="holo-actions">
+              <button className="holo-btn" onClick={() => openExternalLink('https://github.com/Prabhavathi-Ai')}>
+                VIEW CODE
+              </button>
+              <button className="holo-btn outline" onClick={() => openExternalLink('https://github.com/Prabhavathi-Ai?tab=repositories')}>
+                GITHUB
+              </button>
+            </div>
+          </div>
 
-            <motion.div 
-              className="contact-links"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {[
-                { icon: "📧", text: "Send Email", link: "mailto:prabhavathi06052007@gmail.com", color: "#EA4335" },
-                { icon: "💼", text: "LinkedIn", link: "https://linkedin.com/in/prabhavathi-a-965b4b34a", color: "#0077B5" },
-                { icon: "💻", text: "GitHub", link: "https://github.com/Prabhavathi-Ai", color: "#333" }
-              ].map((contact, index) => (
-                <motion.a
-                  key={contact.text}
-                  href={contact.link}
-                  className="contact-link-card"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{ '--hover-color': contact.color }}
-                >
-                  <span className="contact-card-icon">{contact.icon}</span>
-                  <span className="contact-card-text">{contact.text}</span>
-                </motion.a>
-              ))}
-            </motion.div>
+          <div className="hologram-card">
+            <div className="holo-header">
+              <div className="holo-badge">PORTFOLIO</div>
+              <div className="holo-status live"></div>
+            </div>
+            <div className="holo-content">
+              <h3>MODERN PORTFOLIO</h3>
+              <div className="holo-progress">
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{width: '100%'}}></div>
+                </div>
+                <span>COMPLETED</span>
+              </div>
+              <p>Advanced portfolio website with React, animations, and responsive design deployed on GitHub Pages.</p>
+              <div className="holo-tech">
+                <span>REACT</span>
+                <span>CSS3</span>
+                <span>JAVASCRIPT</span>
+              </div>
+            </div>
+            <div className="holo-actions">
+              <button className="holo-btn" onClick={() => openExternalLink('https://github.com/Prabhavathi-Ai/my-portfolio')}>
+                SOURCE CODE
+              </button>
+              <button className="holo-btn outline" onClick={() => openExternalLink('https://prabhavathi-ai.github.io/my-portfolio')}>
+                LIVE DEMO
+              </button>
+            </div>
+          </div>
+
+          <div className="hologram-card">
+            <div className="holo-header">
+              <div className="holo-badge">COMING SOON</div>
+              <div className="holo-status active"></div>
+            </div>
+            <div className="holo-content">
+              <h3>SKILLSYNAPSE AI</h3>
+              <div className="holo-progress">
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{width: '25%'}}></div>
+                </div>
+                <span>PLANNING STAGE</span>
+              </div>
+              <p>AI-powered learning assessment platform with personalized learning paths and cognitive analysis.</p>
+              <div className="holo-tech">
+                <span>REACT</span>
+                <span>NODE.JS</span>
+                <span>MONGODB</span>
+              </div>
+            </div>
+            <div className="holo-actions">
+              <button className="holo-btn" onClick={() => scrollToSection('contact')}>
+                COLLABORATE
+              </button>
+              <button className="holo-btn outline" onClick={sendEmail}>
+                GET UPDATES
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section - FIXED Terminal */}
+      <section id="contact" className="contact-terminal">
+        <div className="terminal-window">
+          <div className="terminal-header">
+            <div className="terminal-controls">
+              <div className="control close"></div>
+              <div className="control minimize"></div>
+              <div className="control maximize"></div>
+            </div>
+            <div className="terminal-title">contact_protocol.exe</div>
+          </div>
+          <div className="terminal-body">
+            <div className="terminal-output">
+              <div className="output-line">
+                <span className="prompt">user@prabhavathi:~$</span> initiate_contact_protocol
+              </div>
+              <div className="output-line">
+                <span className="accent">>> CONTACT PROTOCOL INITIALIZED</span>
+              </div>
+              <div className="output-line">
+                <span className="prompt">></span> Available communication channels:
+              </div>
+              <div className="output-line clickable" onClick={sendEmail}>
+                <span className="prompt">></span> 📧 prabhavathi06052007@gmail.com
+              </div>
+              <div className="output-line clickable" onClick={() => openExternalLink('https://linkedin.com/in/prabhavathi-a-965b4b34a')}>
+                <span className="prompt">></span> 💼 linkedin.com/in/prabhavathi-a-965b4b34a
+              </div>
+              <div className="output-line clickable" onClick={() => openExternalLink('https://github.com/Prabhavathi-Ai')}>
+                <span className="prompt">></span> 🐙 github.com/Prabhavathi-Ai
+              </div>
+              <div className="output-line">
+                <span className="prompt">></span> Ready for collaboration and innovative projects.
+              </div>
+            </div>
+            <div className="terminal-input">
+              <span className="prompt">user@prabhavathi:~$</span>
+              <input 
+                type="text" 
+                placeholder="type_command_here..." 
+                className="terminal-cmd"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    const command = e.target.value.toLowerCase();
+                    if (command.includes('email')) sendEmail();
+                    else if (command.includes('linkedin')) openExternalLink('https://linkedin.com/in/prabhavathi-a-965b4b34a');
+                    else if (command.includes('github')) openExternalLink('https://github.com/Prabhavathi-Ai');
+                    else if (command.includes('projects')) scrollToSection('projects');
+                    e.target.value = '';
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <motion.div
-            className="footer-content"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <div className="footer-text">
-              <h3>PRABHAVATHI A</h3>
-              <p>Computer Science Engineer & Aspiring Software Developer</p>
-            </div>
-            <div className="footer-links">
-              <a href="#home">Home</a>
-              <a href="#about">About</a>
-              <a href="#projects">Projects</a>
-              <a href="#contact">Contact</a>
-            </div>
+      <footer className="cyber-footer">
+        <div className="footer-grid">
+          <div className="footer-section">
+            <div className="footer-title">PRABHAVATHI A</div>
+            <div className="footer-status">AI DEVELOPER • FULL STACK ENGINEER • INNOVATOR</div>
+          </div>
+          <div className="footer-section">
             <div className="footer-copyright">
-              <p>&copy; 2024 PRABHAVATHI A. Built with React & ❤️</p>
+              © 2024 PRABHAVATHI A • BUILT WITH REACT & PASSION FOR TECHNOLOGY
             </div>
-          </motion.div>
+          </div>
         </div>
+        <div className="footer-scanline"></div>
       </footer>
     </div>
   );
-}
+};
 
-export default App;
+export default NeuroSynapsePortfolio;
